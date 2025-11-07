@@ -47,3 +47,27 @@ const variations = {
     }
   `,
 };
+
+const Button = styled.button`
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: var(--color-brand-700);
+  }
+
+  /* Default styling */
+  ${sizes.medium}
+  ${variations.primary}
+
+  /* Apply variation prop (primary, secondary, danger) */
+  ${(props) => variations[props.$variation] || ""}
+  /* Apply size prop (small, medium, large) */
+  ${(props) => sizes[props.$size] || ""}
+`;
+
+export default Button;
