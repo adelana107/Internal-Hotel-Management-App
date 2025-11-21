@@ -44,7 +44,10 @@ const Label = styled.label`
 `;
 
 function CreateCabinForm() {
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, getValues, formState } = useForm({
+    defaultValues: { discount: 0 },
+  });
+  const { errors } = formState;
 
   const queryClient = useQueryClient();
 
@@ -64,43 +67,120 @@ function CreateCabinForm() {
     mutate(data);
   }
 
+  function onError(errors) {
+    console.log("Form errors:", errors);
+  }
+
   return (
-    <Form onSubmit={handleSubmit(onSubmit)}>
-      <FormRow>
+    <Form onSubmit={handleSubmit(onSubmit, onError)}>
+      {/* Cabin Name */}
+      <FormRow label="Cabin name" error={errors?.name?.message}>
         <Label htmlFor="name">Cabin name</Label>
-        <Input type="text" id="name" {...register("name")} />
+        <Input
+          type="text"
+          id="name"
+          disabled={isCreating}
+          {...register("name", { required: "Cabin name is required" })}
+        />
+        {errors?.name?.message && (
+          <span style={{ color: "red", fontSize: "0.875rem" }}>
+            {errors.name.message}
+          </span>
+        )}
       </FormRow>
 
-      <FormRow>
-        <Label htmlFor="maxCapacity">Maximum capacity</Label>
-        <Input type="number" id="maxCapacity" {...register("maxCapacity")} />
+      {/* Maximum Capacity */}
+      <FormRow label="Maximum capacity" error={errors?.maxCapacity?.message}>
+        <Label htmlFor="maxCapacity">Maximum capacity (guests)</Label>
+        <Input
+          type="number"
+          id="maxCapacity"
+          disabled={isCreating}
+          min={1}
+          {...register("maxCapacity", {
+            required: "Maximum capacity is required",
+            min: { value: 1, message: "There must be at least 1 guest" },
+            valueAsNumber: true,
+          })}
+        />
+        {errors?.maxCapacity?.message && (
+          <span style={{ color: "red", fontSize: "0.875rem" }}>
+            {errors.maxCapacity.message}
+          </span>
+        )}
       </FormRow>
 
-      <FormRow>
+      {/* Regular Price */}
+      <FormRow label="Regular price" error={errors?.regularPrice?.message}>
         <Label htmlFor="regularPrice">Regular price</Label>
-        <Input type="number" id="regularPrice" {...register("regularPrice")} />
+        <Input
+          type="number"
+          id="regularPrice"
+          disabled={isCreating}
+          min={1}
+          {...register("regularPrice", {
+            required: "Regular price is required",
+            min: { value: 1, message: "Price must be at least 1" },
+            valueAsNumber: true,
+          })}
+        />
+        {errors?.regularPrice?.message && (
+          <span style={{ color: "red", fontSize: "0.875rem" }}>
+            {errors.regularPrice.message}
+          </span>
+        )}
       </FormRow>
 
-      <FormRow>
+      {/* Discount */}
+      <FormRow label="Discount" error={errors?.discount?.message}>
         <Label htmlFor="discount">Discount</Label>
         <Input
           type="number"
           id="discount"
-          defaultValue={0}
-          {...register("discount")}
+          disabled={isCreating}
+          min={0}
+          {...register("discount", {
+            required: "Discount is required",
+            valueAsNumber: true,
+            min: { value: 0, message: "Discount cannot be negative" },
+            validate: (value) =>
+              value <= getValues().regularPrice ||
+              "Discount should be less than or equal to the regular price",
+          })}
         />
+        {errors?.discount?.message && (
+          <span style={{ color: "red", fontSize: "0.875rem" }}>
+            {errors.discount.message}
+          </span>
+        )}
       </FormRow>
 
-      <FormRow>
+      {/* Description */}
+      <FormRow
+        label="Description for website"
+        error={errors?.description?.message}
+      >
         <Label htmlFor="description">Description for website</Label>
-        <Textarea id="description" {...register("description")} />
+        <Textarea
+          id="description"
+          disabled={isCreating}
+          {...register("description", { required: "Description is required" })}
+        />
+        {errors?.description?.message && (
+          <span style={{ color: "red", fontSize: "0.875rem" }}>
+            {errors.description.message}
+          </span>
+        )}
       </FormRow>
 
-      <FormRow>
+      {/* Cabin Photo */}
+      <FormRow label="Cabin photo">
         <Label htmlFor="image">Cabin photo</Label>
-        <FileInput id="image" accept="image/*" {...register("image")} />
+        <FileInput id="image" accept="image/*" name="image" />
+        
       </FormRow>
 
+      {/* Buttons */}
       <FormRow>
         <Button variation="secondary" type="reset">
           Cancel
