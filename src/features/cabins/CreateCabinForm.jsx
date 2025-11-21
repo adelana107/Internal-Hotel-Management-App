@@ -63,8 +63,12 @@ function CreateCabinForm() {
     },
   });
 
+  // FIXED: No more { data, ... }
   function onSubmit(data) {
-    mutate(data);
+    mutate({
+      ...data,
+      image: data.image[0], // extract File from FileList
+    });
   }
 
   function onError(errors) {
@@ -176,8 +180,12 @@ function CreateCabinForm() {
       {/* Cabin Photo */}
       <FormRow label="Cabin photo">
         <Label htmlFor="image">Cabin photo</Label>
-        <FileInput id="image" accept="image/*" name="image" />
-        
+        <FileInput
+          id="image"
+          accept="image/*"
+          disabled={isCreating}
+          {...register("image", { required: "Image is required" })}
+        />
       </FormRow>
 
       {/* Buttons */}
