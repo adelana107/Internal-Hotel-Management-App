@@ -4,6 +4,8 @@ import { formatCurrency } from "../../utils/helpers";
 import { useState } from "react";
 import CreateCabinForm from "./CreateCabinForm";
 import { useDeleteCabin } from "./useDeleteCabin";
+import { HiSquare2Stack, HiPencil, HiTrash } from "react-icons/hi2";
+import { useCreateCabin } from "./useCreateCabin";
 
 const TableRow = styled.div`
   display: grid;
@@ -48,9 +50,30 @@ const Discount = styled.div`
 
 function CabinRow({ cabin, index }) {
   const [showForm, setShowForm] = useState(false);
-  const { isDeleting, deleteCabin } = useDeleteCabin();
 
-  const { id: cabinId, name, maxCapacity, regularPrice, discount, image } = cabin;
+  const { isDeleting, deleteCabin } = useDeleteCabin();
+  const { createCabin } = useCreateCabin(); // FIX: removed unused isCreating
+
+  const {
+    id: cabinId,
+    name,
+    maxCapacity,
+    regularPrice,
+    discount,
+    image,
+    description,   // FIX: added description
+  } = cabin;
+
+  function handleDuplicate() {
+    createCabin({
+      name: `Copy of ${name}`,
+      maxCapacity,
+      regularPrice,
+      discount,
+      image,
+      description, // FIX: now defined
+    });
+  }
 
   return (
     <>
@@ -60,13 +83,24 @@ function CabinRow({ cabin, index }) {
           <Img src={image} alt={name} />
           <CabinName>{name}</CabinName>
         </CabinInfo>
+
         <div>Fits up to {maxCapacity} guests</div>
+
         <Price>{formatCurrency(regularPrice)}</Price>
+
         {discount ? <Discount>{discount}%</Discount> : <span>&mdash;</span>}
+
         <div>
-          <button onClick={() => setShowForm((show) => !show)}>Edit</button>
+          <button onClick={handleDuplicate}>
+            <HiSquare2Stack />
+          </button>
+
+          <button onClick={() => setShowForm((show) => !show)}>
+            <HiPencil />
+          </button>
+
           <button onClick={() => deleteCabin(cabinId)} disabled={isDeleting}>
-            Delete
+            <HiTrash />
           </button>
         </div>
       </TableRow>
@@ -84,6 +118,7 @@ CabinRow.propTypes = {
     regularPrice: PropTypes.number.isRequired,
     discount: PropTypes.number,
     image: PropTypes.string.isRequired,
+    description: PropTypes.string,
   }).isRequired,
   index: PropTypes.number.isRequired,
 };
