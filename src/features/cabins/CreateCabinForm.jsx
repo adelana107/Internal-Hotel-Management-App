@@ -11,7 +11,7 @@ import PropTypes from "prop-types";
 import { useCreateCabin } from "./useCreateCabin";
 import { useEditCabin } from "./useEditCabin";
 
-function CreateCabinForm({ cabinToEdit = {} }) {
+function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
   const { id: editId, ...editValues } = cabinToEdit || {};
   const isEditSession = Boolean(editId);
 
@@ -23,7 +23,6 @@ function CreateCabinForm({ cabinToEdit = {} }) {
   });
 
   const { errors } = formState;
-
   const isWorking = isCreating || isEditing;
 
   function onSubmit(data) {
@@ -33,14 +32,20 @@ function CreateCabinForm({ cabinToEdit = {} }) {
       editCabin(
         { newCabinData: { ...data, image }, id: editId },
         {
-          onSuccess: () => reset(),
+          onSuccess: () => {
+            reset();
+            onCloseModal?.();
+          },
         }
       );
     } else {
       createCabin(
         { ...data, image },
         {
-          onSuccess: () => reset(),
+          onSuccess: () => {
+            reset();
+            onCloseModal?.();
+          },
         }
       );
     }
@@ -51,7 +56,7 @@ function CreateCabinForm({ cabinToEdit = {} }) {
   }
 
   return (
-    <Form onSubmit={handleSubmit(onSubmit, onError)}>
+    <Form onSubmit={handleSubmit(onSubmit, onError)} type = {onCloseModal ? 'modal': 'regular'}>
       <FormRow label="Cabin name" error={errors?.name?.message}>
         <Input
           type="text"
@@ -61,10 +66,7 @@ function CreateCabinForm({ cabinToEdit = {} }) {
         />
       </FormRow>
 
-      <FormRow
-        label="Maximum capacity (guests)"
-        error={errors?.maxCapacity?.message}
-      >
+      <FormRow label="Maximum capacity (guests)" error={errors?.maxCapacity?.message}>
         <Input
           type="number"
           id="maxCapacity"
@@ -109,16 +111,11 @@ function CreateCabinForm({ cabinToEdit = {} }) {
         />
       </FormRow>
 
-      <FormRow
-        label="Description for website"
-        error={errors?.description?.message}
-      >
+      <FormRow label="Description for website" error={errors?.description?.message}>
         <Textarea
           id="description"
           disabled={isWorking}
-          {...register("description", {
-            required: "Description is required",
-          })}
+          {...register("description", { required: "Description is required" })}
         />
       </FormRow>
 
@@ -127,14 +124,12 @@ function CreateCabinForm({ cabinToEdit = {} }) {
           id="image"
           accept="image/*"
           disabled={isWorking}
-          {...register("image", {
-            required: isEditSession ? false : "Image is required",
-          })}
+          {...register("image", { required: isEditSession ? false : "Image is required" })}
         />
       </FormRow>
 
       <FormRow>
-        <Button variation="secondary" type="reset">
+        <Button variation="secondary" type="reset" onClick={() => onCloseModal?.()}>
           Cancel
         </Button>
         <Button disabled={isWorking}>
@@ -147,6 +142,7 @@ function CreateCabinForm({ cabinToEdit = {} }) {
 
 CreateCabinForm.propTypes = {
   cabinToEdit: PropTypes.object,
+  onCloseModal: PropTypes.func,
 };
 
 export default CreateCabinForm;
