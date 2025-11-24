@@ -1,6 +1,8 @@
+import { createContext, useContext, useState, cloneElement } from "react";
+import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import { createPortal } from "react-dom";
+import { HiXMark } from "react-icons/hi2";
 
 const StyledModal = styled.div`
   position: fixed;
@@ -12,7 +14,7 @@ const StyledModal = styled.div`
   box-shadow: var(--shadow-lg);
   padding: 3.2rem 4rem;
   transition: all 0.5s;
-  z-index: 1001; /* above overlay */
+  z-index: 1001;
 `;
 
 const Overlay = styled.div`
@@ -48,21 +50,61 @@ const CloseButton = styled.button`
   }
 `;
 
-function Modal({ children, onClose }) {
+const ModalContext = createContext();
+
+function Modal({ children }) {
+  const [openName, setOpenName] = useState("");
+
+  const close = () => setOpenName("");
+  const open = setOpenName;
+
+  return (
+    <ModalContext.Provider value={{ openName, open, close }}>
+      {children}
+    </ModalContext.Provider>
+  );
+}
+
+
+
+function Open({ children, opens }) {
+  const { open } = useContext(ModalContext);
+
+  return cloneElement(children, { onClick: () => open(opens) });
+}
+
+function Window({ children, name }) {
+  const { openName, close } = useContext(ModalContext);
+  if (name !== openName) return null;
+
   return createPortal(
     <Overlay>
       <StyledModal>
-        <CloseButton onClick={onClose}>×</CloseButton>
-        {children}
+        <CloseButton onClick={close}>
+          <HiXMark />
+        </CloseButton>
+        {cloneElement(children, { onCloseModal: close })}
       </StyledModal>
     </Overlay>,
     document.body
   );
 }
 
+Modal.Open = Open;
+Modal.Window = Window;
+
 Modal.propTypes = {
   children: PropTypes.node.isRequired,
-  onClose: PropTypes.func.isRequired,
+};
+
+Open.propTypes = {
+  children: PropTypes.node.isRequired,
+  opens: PropTypes.string.isRequired,
+};
+
+Window.propTypes = {
+  children: PropTypes.node.isRequired,
+  name: PropTypes.string.isRequired,
 };
 
 export default Modal;
