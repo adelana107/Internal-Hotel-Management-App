@@ -2,6 +2,8 @@ import Spinner from "../../ui/Spinner";
 import CabinRow from "./CabinRow";
 import { useCabins } from "./useCabins";
 import Table from "../../ui/Table";
+import Menus from "../../ui/Menus";
+
 function CabinTable() {
   const { isLoading, cabins, error } = useCabins();
 
@@ -9,6 +11,7 @@ function CabinTable() {
   if (error) return <div>Failed to load cabins.</div>;
 
   return (
+    <Menus>
     <Table columns="0.6fr 1.8fr 2.2fr 1fr 1fr 1fr">
       <Table.Header>
         <div>#</div>
@@ -26,6 +29,7 @@ function CabinTable() {
         )}
       />
     </Table>
+    </Menus>
   );
 }
 
