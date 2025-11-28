@@ -1,7 +1,7 @@
 import Spinner from "../../ui/Spinner";
 import CabinRow from "./CabinRow";
 import { useCabins } from "./useCabins";
-import Table from "../../ui/Table"; 
+import Table from "../../ui/Table";
 function CabinTable() {
   const { isLoading, cabins, error } = useCabins();
 
@@ -19,9 +19,12 @@ function CabinTable() {
         <div>Actions</div>
       </Table.Header>
 
-      {cabins?.map((cabin, index) => (
-        <CabinRow key={cabin.id} cabin={cabin} index={index} />
-      ))}
+      <Table.Body
+        data={cabins}
+        render={(cabin, index) => (
+          <CabinRow key={cabin.id} cabin={cabin} index={index} />
+        )}
+      />
     </Table>
   );
 }
