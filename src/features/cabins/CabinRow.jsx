@@ -48,10 +48,13 @@ function CabinRow({ cabin, index }) {
     name,
     maxCapacity,
     regularPrice,
-    discount,
+    discount = 0, // default to 0 if null
     image,
     description,
   } = cabin;
+
+  // Calculate final price after discount
+  const finalPrice = regularPrice - discount;
 
   function handleDuplicate() {
     createCabin({
@@ -77,7 +80,12 @@ function CabinRow({ cabin, index }) {
 
       <Price>{formatCurrency(regularPrice)}</Price>
 
-      {discount ? <Discount>{discount}%</Discount> : <span>&mdash;</span>}
+      {/* Show final price instead of percentage */}
+      {discount > 0 ? (
+        <Discount>{formatCurrency(finalPrice)}</Discount>
+      ) : (
+        <span>&mdash;</span>
+      )}
 
       {/* ACTIONS MENU */}
       <Modal>

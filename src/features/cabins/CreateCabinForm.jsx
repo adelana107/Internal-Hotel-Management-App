@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Input from "../../ui/Input";
 import Form from "../../ui/Form";
 import Button from "../../ui/Button";
@@ -18,12 +19,23 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
   const { isCreating, createCabin } = useCreateCabin();
   const { isEditing, editCabin } = useEditCabin();
 
-  const { register, handleSubmit, reset, getValues, formState } = useForm({
+  const { register, handleSubmit, reset, getValues, watch, formState } = useForm({
     defaultValues: isEditSession ? { ...editValues } : {},
   });
 
   const { errors } = formState;
   const isWorking = isCreating || isEditing;
+
+  // Watch for discount and regularPrice changes
+  const regularPrice = watch("regularPrice");
+  const discount = watch("discount");
+  const [finalPrice, setFinalPrice] = useState(0);
+
+  useEffect(() => {
+    const regPrice = Number(regularPrice) || 0;
+    const disc = discount === null || discount === undefined ? 0 : Number(discount);
+    setFinalPrice(Math.max(regPrice - disc, 0));
+  }, [regularPrice, discount]);
 
   function onSubmit(data) {
     const image = typeof data.image === "string" ? data.image : data.image[0];
@@ -56,7 +68,10 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
   }
 
   return (
-    <Form onSubmit={handleSubmit(onSubmit, onError)} type = {onCloseModal ? 'modal': 'regular'}>
+    <Form
+      onSubmit={handleSubmit(onSubmit, onError)}
+      type={onCloseModal ? "modal" : "regular"}
+    >
       <FormRow label="Cabin name" error={errors?.name?.message}>
         <Input
           type="text"
@@ -66,7 +81,10 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
         />
       </FormRow>
 
-      <FormRow label="Maximum capacity (guests)" error={errors?.maxCapacity?.message}>
+      <FormRow
+        label="Maximum capacity (guests)"
+        error={errors?.maxCapacity?.message}
+      >
         <Input
           type="number"
           id="maxCapacity"
@@ -101,17 +119,27 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
           disabled={isWorking}
           min={0}
           {...register("discount", {
-            required: "Discount is required",
-            valueAsNumber: true,
-            min: { value: 0, message: "Discount cannot be negative" },
-            validate: (value) =>
-              value <= getValues().regularPrice ||
-              "Discount must be less than regular price",
+            setValueAs: (v) =>
+              v === "" || v === null || v === undefined ? null : Number(v),
+            validate: (value) => {
+              if (value === null) return true;
+              if (value < 0) return "Discount cannot be negative";
+              if (value > Number(getValues().regularPrice))
+                return "Discount must be less than regular price";
+              return true;
+            },
           })}
         />
       </FormRow>
 
-      <FormRow label="Description for website" error={errors?.description?.message}>
+      <FormRow label="Final Price">
+        <Input type="number" value={finalPrice} disabled />
+      </FormRow>
+
+      <FormRow
+        label="Description for website"
+        error={errors?.description?.message}
+      >
         <Textarea
           id="description"
           disabled={isWorking}
@@ -124,12 +152,18 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
           id="image"
           accept="image/*"
           disabled={isWorking}
-          {...register("image", { required: isEditSession ? false : "Image is required" })}
+          {...register("image", {
+            required: isEditSession ? false : "Image is required",
+          })}
         />
       </FormRow>
 
       <FormRow>
-        <Button variation="secondary" type="reset" onClick={() => onCloseModal?.()}>
+        <Button
+          variation="secondary"
+          type="reset"
+          onClick={() => onCloseModal?.()}
+        >
           Cancel
         </Button>
         <Button disabled={isWorking}>

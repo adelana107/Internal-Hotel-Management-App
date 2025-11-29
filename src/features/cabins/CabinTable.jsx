@@ -16,13 +16,34 @@ function CabinTable() {
 
   let filteredCabins = cabins;
 
+  // Filter cabins based on discount
   if (filterValue === "no-discount") {
-    filteredCabins = cabins.filter((cabin) => cabin.discount === 0);
+    filteredCabins = cabins.filter(
+      (cabin) => cabin.discount === 0 || cabin.discount === null
+    );
   }
 
   if (filterValue === "with-discount") {
-    filteredCabins = cabins.filter((cabin) => cabin.discount > 0);
+    filteredCabins = cabins.filter(
+      (cabin) => cabin.discount !== null && cabin.discount > 0
+    );
   }
+
+  // Sorting
+  const sortBy = searchParams.get("sort") || "name-asc"; // match SortBy component
+  const [field, direction] = sortBy.split("-");
+  const modifier = direction === "asc" ? 1 : -1;
+
+  const sortedCabins = [...filteredCabins].sort((a, b) => {
+    const aVal = a[field];
+    const bVal = b[field];
+
+    if (typeof aVal === "string" && typeof bVal === "string") {
+      return aVal.localeCompare(bVal) * modifier;
+    }
+
+    return (aVal - bVal) * modifier;
+  });
 
   return (
     <Menus>
@@ -33,11 +54,10 @@ function CabinTable() {
           <div>Capacity</div>
           <div>Price</div>
           <div>Discount</div>
-          <div>Actions</div>
         </Table.Header>
 
         <Table.Body
-          data={filteredCabins}
+          data={sortedCabins}
           render={(cabin, index) => (
             <CabinRow key={cabin.id} cabin={cabin} index={index} />
           )}
